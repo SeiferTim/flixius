@@ -34,7 +34,10 @@ class PlayState extends FlxState
 		add(_map);
 		
 		_sprPlayer = new FlxSprite();
-		_sprPlayer.makeGraphic(16, 8, FlxColor.GRAY);
+		_sprPlayer.loadGraphic(AssetPaths.player__png, true, 16, 8);
+		_sprPlayer.animation.add("normal", [0]);
+		_sprPlayer.animation.add("down", [1]);
+		_sprPlayer.animation.add("up", [2]);
 		_sprPlayer.x = 10;
 		_sprPlayer.y = (FlxG.height / 2) - (_sprPlayer.height / 2);
 		add(_sprPlayer);
@@ -126,6 +129,12 @@ class PlayState extends FlxState
 			v -= 250;
 		if (FlxG.keys.anyPressed(["DOWN", "S"]))
 			v += 250;
+		if (v < 0)
+			_sprPlayer.animation.play("up");
+		else if (v > 0)
+			_sprPlayer.animation.play("down");
+		else
+			_sprPlayer.animation.play("normal");
 		_sprPlayer.velocity.y = v;
 		v = _chaser.velocity.x;
 		if (FlxG.keys.anyPressed(["LEFT", "A"]))

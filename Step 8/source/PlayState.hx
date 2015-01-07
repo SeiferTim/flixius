@@ -5,6 +5,7 @@ import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxState;
 import flixel.graphics.FlxGraphic;
+import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.text.FlxText;
 import flixel.tile.FlxBaseTilemap.FlxTilemapAutoTiling;
 import flixel.tile.FlxTilemap;
@@ -22,6 +23,10 @@ class PlayState extends FlxState
 	private var _sprPlayer:FlxSprite;
 	private var _map:FlxTilemap;
 	private var _chaser:FlxSprite;
+	private var _grpEnemies:FlxTypedGroup<Enemy>;
+	private var _grpPBullets:FlxTypedGroup<PBullet>;
+	private var _grpEBullets:FlxTypedGroup<EBullet>;
+	private var _shootDelay:Float = 0;
 	
 	/**
 	 * Function that is called up when to state is created to set it up. 
@@ -30,11 +35,17 @@ class PlayState extends FlxState
 	{
 		super.create();
 		bgColor = 0xff160100;
+		
+		_grpEnemies = new FlxTypedGroup<Enemy>();
+		
 		_map = loadMap();
 		add(_map);
 		
 		_sprPlayer = new FlxSprite();
-		_sprPlayer.makeGraphic(16, 8, FlxColor.GRAY);
+		_sprPlayer.loadGraphic(AssetPaths.player__png, true, 16, 8);
+		_sprPlayer.animation.add("normal", [0]);
+		_sprPlayer.animation.add("down", [1]);
+		_sprPlayer.animation.add("up", [2]);
 		_sprPlayer.x = 10;
 		_sprPlayer.y = (FlxG.height / 2) - (_sprPlayer.height / 2);
 		add(_sprPlayer);
@@ -46,8 +57,14 @@ class PlayState extends FlxState
 		_chaser.y = _sprPlayer.y + (_sprPlayer.height / 2) - 1;
 		add(_chaser);
 		
-		FlxG.camera.setScrollBoundsRect(_map.x,  _map.y, _map.width,  _map.height, true);
+		add(_grpEnemies);
 		
+		_grpPBullets = new FlxTypedGroup<PBullet>();
+		add(_grpPBullets);
+		_grpEBullets = new FlxTypedGroup<EBullet>();
+		add(_grpEBullets);
+		
+		FlxG.camera.setScrollBoundsRect(_map.x,  _map.y, _map.width,  _map.height, true);
 		
 		FlxG.camera.target = _chaser;
 		FlxG.camera.style = FlxCameraFollowStyle.LOCKON;
@@ -69,8 +86,11 @@ class PlayState extends FlxState
 			arrMap.push([]);
 			for (x in 0...Std.int(gfxMap.width))
 			{
+				
 				if (gfxMap.pixels.getPixel(x,y) == 0x000000)
 					arrMap[y].push(1);
+				else if (gfxMap.pixels.getPixel(x, y) == 0xff0000)
+					_grpEnemies.add(new Enemy(x * 16, y * 16, this));
 				else
 					arrMap[y].push(0);
 			}
@@ -95,8 +115,6 @@ class PlayState extends FlxState
 	override public function update(elapsed:Float):Void
 	{
 		
-		
-		
 		playerMovement();
 		
 		super.update(elapsed);
@@ -105,17 +123,60 @@ class PlayState extends FlxState
 		
 		_chaser.y = _sprPlayer.y + (_sprPlayer.height / 2) - 1;
 		
-		
+		if (_shootDelay > 0)
+			_shootDelay -= FlxG.elapsed * 6;
 	}
 	
 	
 	private function collision():Void
 	{
-		FlxG.collide(_sprPlayer, _map);
+		FlxG.collide(_sprPlayer, _map,playerHitsWall);
 		
 		if (_sprPlayer.x < _chaser.x - (FlxG.width / 2) + 8)
 		{
 			_sprPlayer.x = _chaser.x - (FlxG.width / 2) + 8;
+		}
+		
+		FlxG.overlap(_grpPBullets, _grpEnemies, pBulletHitEnemy);
+		FlxG.overlap(_sprPlayer, _grpEnemies, playerHitEnemy);
+		FlxG.overlap(_grpEBullets, _sprPlayer, eBulletHitPlayer);
+	}
+	
+	private function eBulletHitPlayer(EB:EBullet, P:FlxSprite):Void
+	{
+		if (EB.alive)
+		{
+			EB.kill();
+			killPlayer();
+		}
+	}
+	
+	private function playerHitEnemy(P:FlxSprite, E:Enemy):Void
+	{
+		if (E.alive)
+		{
+			E.kill();
+			killPlayer();
+		}
+	}
+	private function playerHitsWall(P:FlxSprite, W:FlxTilemap):Void
+	{
+		killPlayer();
+	}
+	
+	private function killPlayer():Void
+	{
+		_sprPlayer.kill();
+		
+		FlxG.switchState(new MenuState());
+	}
+	
+	private function pBulletHitEnemy(PB:PBullet, E:Enemy):Void
+	{
+		if (PB.alive && E.alive)
+		{
+			PB.kill();
+			E.kill();
 		}
 	}
 	
@@ -126,6 +187,12 @@ class PlayState extends FlxState
 			v -= 250;
 		if (FlxG.keys.anyPressed(["DOWN", "S"]))
 			v += 250;
+		if (v < 0)
+			_sprPlayer.animation.play("up");
+		else if (v > 0)
+			_sprPlayer.animation.play("down");
+		else
+			_sprPlayer.animation.play("normal");
 		_sprPlayer.velocity.y = v;
 		v = _chaser.velocity.x;
 		if (FlxG.keys.anyPressed(["LEFT", "A"]))
@@ -134,6 +201,33 @@ class PlayState extends FlxState
 			v += 100;
 		_sprPlayer.velocity.x = v;
 		
+		if (FlxG.keys.anyPressed(["SPACE", "X"]))
+		{
+			shootPBullet();
+		}
 		
+	}
+	
+	public function shootEBullet(E:Enemy):Void
+	{
+		var eB:EBullet = _grpEBullets.recycle();
+		if (eB == null)
+			eB = new EBullet();
+		eB.reset(E.x -eB.width, E.y +E.height -1);
+		_grpEBullets.add(eB);
+		
+	}
+	
+	private function shootPBullet():Void
+	{
+		if (_shootDelay <= 0 && _grpPBullets.countLiving() < 12)
+		{
+			var pB:PBullet = _grpPBullets.recycle();
+			if (pB == null)
+				pB = new PBullet();
+			pB.reset(_sprPlayer.x + _sprPlayer.width, _sprPlayer.y +_sprPlayer.height -1);
+			_grpPBullets.add(pB);
+			_shootDelay = .5;
+		}
 	}
 }
