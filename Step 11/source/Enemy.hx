@@ -40,7 +40,7 @@ class Enemy extends FlxSprite
 				if (isOnScreen())
 				{	
 					velocity.x = -20;
-					velocity.y = Math.sin(x / 10) * 4;
+					velocity.y = Math.sin(x / 10) * 20;
 					_shootTimer -= FlxG.elapsed*4;
 					if (_shootTimer < 4 && _shootTimer > 3)
 					{

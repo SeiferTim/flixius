@@ -19,7 +19,7 @@ class Player extends FlxSprite
 		animation.add("normal", [0]);
 		animation.add("down", [1]);
 		animation.add("up", [2]);
-		health = 3;
+		health = 10;
 		_deathCallback = DeathCallback;
 		
 	}
