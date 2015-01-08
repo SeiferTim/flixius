@@ -49,7 +49,7 @@ class PlayState extends FlxState
 	private var _txtReady:FlxText;
 	private var _sprReady:FlxSprite;
 	private var _stars:FlxStarField2D;
-	
+	private var _backgroundStuff:FlxTypedGroup<FlxSprite>;
 	/**
 	 * Function that is called up when to state is created to set it up. 
 	 */
@@ -65,6 +65,28 @@ class PlayState extends FlxState
 		_stars.scrollFactor.set();
 		_stars.setStarSpeed(0, 0);
 		add(_stars);
+		
+		_backgroundStuff = new FlxTypedGroup<FlxSprite>();
+		add(_backgroundStuff);
+		
+		var star:FlxSprite = new FlxSprite(0, 0, AssetPaths.star__png);
+		star.scrollFactor.set(.2, .1);
+		_backgroundStuff.add(star);
+		var star2:FlxSprite = new FlxSprite(FlxG.width * 1.6, 0, AssetPaths.big_star__png);
+		star2.scrollFactor.set(.3, .6);
+		_backgroundStuff.add(star2);
+		
+		var planet:FlxSprite = new FlxSprite(FlxG.width + 20, FlxG.height - 118, AssetPaths.planet__png);
+		planet.scrollFactor.set(.6, .2);
+		_backgroundStuff.add(planet);
+		var moon:FlxSprite = new FlxSprite(planet.x + planet.width - 80, planet.y - 60, AssetPaths.moon__png);
+		moon.scrollFactor.set(.9, .6);
+		_backgroundStuff.add(moon);
+		var moon2:FlxSprite = new FlxSprite(FlxG.width * .6,60, AssetPaths.moon2__png);
+		moon2.scrollFactor.set(.9, .9);
+		_backgroundStuff.add(moon2);
+		
+		
 		
 		_grpEnemies = new FlxTypedGroup<Enemy>();
 		_grpEThrust = new FlxTypedGroup<Jet>();
@@ -232,6 +254,7 @@ class PlayState extends FlxState
 	{
 		_showingReady = true;
 		
+		/* okay, I admit, this is ridiculous, but it works ;) I would probably find a nicer solution for a 'real' game lol */
 		FlxTween.num(0, 1, .1, { type:FlxTween.ONESHOT, ease:FlxEase.sineOut, onComplete:function(_) {
 			FlxTween.num(0, 1, .2, { type:FlxTween.ONESHOT, ease:FlxEase.sineOut, onComplete:function(_) {
 				FlxTween.num(1, .2, .2, { type:FlxTween.ONESHOT, ease: FlxEase.sineInOut, onComplete:function (_) {
