@@ -1,5 +1,6 @@
 package;
 
+import flixel.addons.display.FlxStarField;
 import flixel.FlxCamera.FlxCameraFollowStyle;
 import flixel.FlxG;
 import flixel.FlxSprite;
@@ -47,6 +48,7 @@ class PlayState extends FlxState
 	private var _showingReady:Bool = false;
 	private var _txtReady:FlxText;
 	private var _sprReady:FlxSprite;
+	private var _stars:FlxStarField2D;
 	
 	/**
 	 * Function that is called up when to state is created to set it up. 
@@ -58,10 +60,17 @@ class PlayState extends FlxState
 		
 		Reg.score = 0;
 		
+		_stars = new FlxStarField2D(0, 0, FlxG.width, FlxG.height, 60);
+		_stars.bgColor = 0x0;
+		_stars.scrollFactor.set();
+		_stars.setStarSpeed(0, 0);
+		add(_stars);
+		
 		_grpEnemies = new FlxTypedGroup<Enemy>();
 		_grpEThrust = new FlxTypedGroup<Jet>();
 		
 		loadMaps();
+		
 		
 		
 		_sprPlayer = new Player(addExplosions);
@@ -230,11 +239,14 @@ class PlayState extends FlxState
 						FlxTween.num(1, .2, .2, { type:FlxTween.ONESHOT, ease: FlxEase.sineInOut, onComplete:function (_) {
 							FlxTween.num(.2, 1, .2, { type:FlxTween.ONESHOT, ease: FlxEase.sineInOut, onComplete:function (_) {
 								FlxTween.num(1, 0, .2, { type:FlxTween.ONESHOT, ease: FlxEase.sineIn, onComplete:function (_) {
-									FlxTween.num(1,0,.1, { type: FlxTween.ONESHOT,ease:FlxEase.sineIn,onComplete:function (_){									
-										_starting = false;
-										_showingReady = false;
-										_chaser.velocity.x = 80;
-									}},readyBoxAlphaOut);
+									FlxG.camera.flash(FlxColor.WHITE,.2,function() {
+										FlxTween.num(1,0,.1, { type: FlxTween.ONESHOT,ease:FlxEase.sineIn,onComplete:function (_){									
+											_starting = false;
+											_showingReady = false;
+											_chaser.velocity.x = 80;
+											_stars.setStarSpeed(60, 160);
+										}},readyBoxAlphaOut);
+									});
 								}},readyAlpha);
 							}},readyAlpha);
 						}},readyAlpha);
@@ -349,7 +361,7 @@ class PlayState extends FlxState
 			EB.kill();
 			spawnHit();
 			P.hurt(1);
-			
+			FlxG.camera.flash(FlxColor.WHITE, .1);
 		}
 	}
 	
@@ -370,7 +382,7 @@ class PlayState extends FlxState
 		{
 			E.kill();
 			addExplosions(E);
-			
+			FlxG.camera.flash(FlxColor.WHITE, .1);
 			Reg.score += 100;
 			_sprPlayer.hurt(1);
 		}
@@ -378,6 +390,7 @@ class PlayState extends FlxState
 	private function playerHitsWall(P:FlxSprite, W:FlxTilemap):Void
 	{
 		_sprPlayer.kill();
+		FlxG.camera.flash(FlxColor.WHITE, .1);
 	}
 	
 	

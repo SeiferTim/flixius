@@ -3,6 +3,7 @@ package ;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.system.FlxAssets.FlxGraphicAsset;
+import flixel.util.FlxColor;
 
 class Player extends FlxSprite
 {
@@ -30,6 +31,8 @@ class Player extends FlxSprite
 		_dyingTimer = 1;
 		
 		_deathCallback(this);
+		FlxG.camera.shake(.05, .2);
+		FlxG.camera.flash(FlxColor.WHITE, .1);
 	}
 	
 	override public function update(elapsed:Float):Void 

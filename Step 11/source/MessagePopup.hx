@@ -84,7 +84,7 @@ class MessagePopup extends FlxSubState
 			O.alpha = 0;
 		});
 		
-		FlxTween.num(0, 1, .66, { type:FlxTween.ONESHOT, ease:FlxEase.circOut, onComplete:function(_) {
+		FlxTween.num(0, 1, .66, { type:FlxTween.ONESHOT, ease:FlxEase.sineOut, onComplete:function(_) {
 			_fadingIn = false;
 		}},updateAlpha);
 		
