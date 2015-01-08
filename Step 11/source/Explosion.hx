@@ -60,6 +60,7 @@ class Explosion extends FlxSprite
 		{
 			if (animation.finished)
 			{
+				animation.pause();
 				kill();
 			}
 		}

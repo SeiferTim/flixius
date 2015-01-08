@@ -10,10 +10,13 @@ import flixel.math.FlxRandom;
 import flixel.text.FlxText;
 import flixel.tile.FlxBaseTilemap.FlxTilemapAutoTiling;
 import flixel.tile.FlxTilemap;
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
 import flixel.ui.FlxBar;
 import flixel.ui.FlxButton;
 import flixel.math.FlxMath;
 import flixel.util.FlxColor;
+using flixel.util.FlxSpriteUtil;
 
 /**
  * A FlxState which can be used for the actual gameplay.
@@ -39,6 +42,11 @@ class PlayState extends FlxState
 	private var _grpEThrust:FlxTypedGroup<Jet>;
 	private var _fading:Bool = false;
 	private var _healthBar:FlxBar;
+	private var _launchedSubstate:Bool = false;
+	private var _starting:Bool = true;
+	private var _showingReady:Bool = false;
+	private var _txtReady:FlxText;
+	private var _sprReady:FlxSprite;
 	
 	/**
 	 * Function that is called up when to state is created to set it up. 
@@ -102,12 +110,29 @@ class PlayState extends FlxState
 		_healthBar.scrollFactor.set();
 		add(_healthBar);
 		
+		_sprReady = new FlxSprite(0, 0);
+		_sprReady.makeGraphic(FlxG.width, Std.int(FlxG.height / 6),FlxColor.RED);
+		_sprReady.screenCenter(false, true);
+		_sprReady.x = FlxG.width;
+		_sprReady.alpha = 0;
+		add(_sprReady);
+		
+		_txtReady  = new FlxText(0, 0, 0, "START!", 48);
+		_txtReady.color = FlxColor.YELLOW;
+		_txtReady.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.BLUE, 4, 1);
+		_txtReady.italic = true;
+		_txtReady.alpha = 0;
+		_txtReady.screenCenter(true, true);
+		add(_txtReady);
+		
 		FlxG.camera.setScrollBoundsRect(_map.x,  _map.y, _map.width,  _map.height, true);
 		
 		FlxG.camera.target = _chaser;
 		FlxG.camera.style = FlxCameraFollowStyle.LOCKON;
 		
-		_chaser.velocity.x = 80;
+		
+		
+		
 		
 	}
 
@@ -193,6 +218,49 @@ class PlayState extends FlxState
 		super.destroy();
 	}
 	
+	
+	public function returnFromSubState():Void
+	{
+		_showingReady = true;
+		
+		FlxTween.num(0, 1, .1, { type:FlxTween.ONESHOT, ease:FlxEase.sineOut, onComplete:function(_) {
+			FlxTween.num(0, 1, .2, { type:FlxTween.ONESHOT, ease:FlxEase.sineOut, onComplete:function(_) {
+				FlxTween.num(1, .2, .2, { type:FlxTween.ONESHOT, ease: FlxEase.sineInOut, onComplete:function (_) {
+					FlxTween.num(.2, 1, .2, { type:FlxTween.ONESHOT, ease: FlxEase.sineInOut, onComplete:function (_) {
+						FlxTween.num(1, .2, .2, { type:FlxTween.ONESHOT, ease: FlxEase.sineInOut, onComplete:function (_) {
+							FlxTween.num(.2, 1, .2, { type:FlxTween.ONESHOT, ease: FlxEase.sineInOut, onComplete:function (_) {
+								FlxTween.num(1, 0, .2, { type:FlxTween.ONESHOT, ease: FlxEase.sineIn, onComplete:function (_) {
+									FlxTween.num(1,0,.1, { type: FlxTween.ONESHOT,ease:FlxEase.sineIn,onComplete:function (_){									
+										_starting = false;
+										_showingReady = false;
+										_chaser.velocity.x = 80;
+									}},readyBoxAlphaOut);
+								}},readyAlpha);
+							}},readyAlpha);
+						}},readyAlpha);
+					}},readyAlpha);
+				}},readyAlpha);
+			}},readyAlpha);
+		}}, readyBoxAlphaIn);
+	}
+	
+	private function readyAlpha(A:Float):Void
+	{
+		_txtReady.alpha = A;
+	}
+	
+	private function readyBoxAlphaIn(A:Float):Void
+	{
+		_sprReady.alpha = A*.8;
+		_sprReady.x = FlxG.width * (1-A);
+	}
+	
+	private function readyBoxAlphaOut(A:Float):Void
+	{
+		_sprReady.alpha = A*.8;
+		_sprReady.x = -FlxG.width * (1-A);
+	}
+	
 	/**
 	 * Function that is called once every frame.
 	 */
@@ -202,39 +270,53 @@ class PlayState extends FlxState
 		
 		super.update(elapsed);
 		
-		if (_sprPlayer.alive)
+		
+		if (_starting)
 		{
-			if (!_sprPlayer.dying)
+			if (!_launchedSubstate)
 			{
-				playerMovement();
-				
-				collision();
-				
-				_chaser.y = _sprPlayer.y + (_sprPlayer.height / 2) - 1;
-				
-				if (_shootDelay > 0)
-					_shootDelay -= FlxG.elapsed * 6;
-			}
-			else
-			{
-				_sprPlayer.velocity.x = 40;
-				_sprPlayer.velocity.y = 40;
-				
+				_launchedSubstate = true;
+				openSubState(new MessagePopup(returnFromSubState));
 			}
 		}
 		else
 		{
-			if (!_fading)
-			{
-				_fading = true;
-				FlxG.camera.fade(FlxColor.BLACK, .8, false, function() {
-					FlxG.switchState(new MenuState());
-				});
-			}
-		}
-		
 			
-		updateScore();
+			if (_sprPlayer.alive)
+			{
+				if (!_sprPlayer.dying)
+				{
+					playerMovement();
+					
+					collision();
+					
+					_chaser.y = _sprPlayer.y + (_sprPlayer.height / 2) - 1;
+					
+					if (_shootDelay > 0)
+						_shootDelay -= FlxG.elapsed * 6;
+				}
+				else
+				{
+					_sprPlayer.velocity.x = 40;
+					_sprPlayer.velocity.y = 40;
+					
+				}
+			}
+			else
+			{
+				if (!_fading)
+				{
+					_fading = true;
+					FlxG.camera.fade(FlxColor.BLACK, .8, false, function() {
+						FlxG.switchState(new MenuState());
+					});
+				}
+			}
+			
+				
+			updateScore();
+		
+		}
 	}
 	
 	
@@ -330,9 +412,9 @@ class PlayState extends FlxState
 	{
 		var v:Float = 0;
 		if (FlxG.keys.anyPressed(["UP", "W"]))
-			v -= 250;
+			v -= 120;
 		if (FlxG.keys.anyPressed(["DOWN", "S"]))
-			v += 250;
+			v += 120;
 		if (v < 0)
 			_sprPlayer.animation.play("up");
 		else if (v > 0)
@@ -342,9 +424,9 @@ class PlayState extends FlxState
 		_sprPlayer.velocity.y = v;
 		v = _chaser.velocity.x;
 		if (FlxG.keys.anyPressed(["LEFT", "A"]))
-			v -= 100;
+			v -= 90;
 		if (FlxG.keys.anyPressed(["RIGHT", "D"]))
-			v += 100;
+			v += 90;
 		_sprPlayer.velocity.x = v;
 		
 		if (FlxG.keys.anyPressed(["SPACE", "X"]))
