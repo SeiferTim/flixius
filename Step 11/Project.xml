@@ -2,7 +2,8 @@
 <project>
 	<!------------------------------APPLICATION SETTINGS---------------------------->
 	
-	<app title="flixius" file="flixius" main="Main" version="0.0.1" company="HaxeFlixel" />
+	<meta title="flixius" package="net.tileisle.flixius" version="0.0.1" company="Tile Isle" />
+	<app title="flixius" file="flixius" main="Main" version="0.0.1" company="Tile Isle" />
 	
 	<!--The flixel preloader is not accurate in Chrome. You can use it regularly if you embed the swf into a html file
 	<!--or you can set the actual size of your file manually at "FlxPreloaderBase-onUpdate-bytesTotal"!-->
@@ -79,4 +80,6 @@
 	<!--------------------------------CUSTOM---------------------------------------->
 	
 	<!--Place custom nodes like icons here (higher priority to override the HaxeFlixel icon)-->
+	
+	<set name="JAVA_HOME" value="C:\Program Files\Java\jdk1.7.0_65" />
 </project>

@@ -8,6 +8,7 @@ import flixel.FlxState;
 import flixel.graphics.FlxGraphic;
 import flixel.group.FlxGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.input.touch.FlxTouch;
 import flixel.math.FlxPoint;
 import flixel.math.FlxRandom;
 import flixel.text.FlxText;
@@ -498,10 +499,27 @@ class PlayState extends FlxState
 	private function playerMovement():Void
 	{
 		var v:Float = 0;
+		
+		#if android
+		var t:FlxTouch = FlxG.touches.getFirst();
+		
+		if (t!=null)
+		{
+			
+			if (t.y < _sprPlayer.y - (_sprPlayer.height / 2))
+				v -= 120;
+			else if (t.y > _sprPlayer.y + _sprPlayer.height + (_sprPlayer.height / 2))
+				v += 120;
+		}
+		#end
+		
+		#if !FLX_NO_KEYBOARD
 		if (FlxG.keys.anyPressed(["UP", "W"]))
 			v -= 120;
 		if (FlxG.keys.anyPressed(["DOWN", "S"]))
 			v += 120;
+		#end
+		
 		if (v < 0)
 			_sprPlayer.animation.play("up");
 		else if (v > 0)
@@ -510,16 +528,45 @@ class PlayState extends FlxState
 			_sprPlayer.animation.play("normal");
 		_sprPlayer.velocity.y = v;
 		v = _chaser.velocity.x;
+		
+		#if android
+		if (t!=null)
+		{
+			if (t.x < _sprPlayer.x)
+				v -= 90;
+			else if (t.x > _sprPlayer.x + _sprPlayer.width)
+				v += 90;
+		}
+		#end
+		
+		#if !FLX_NO_KEYBOARD
 		if (FlxG.keys.anyPressed(["LEFT", "A"]))
 			v -= 90;
 		if (FlxG.keys.anyPressed(["RIGHT", "D"]))
 			v += 90;
+		#end
+		
 		_sprPlayer.velocity.x = v;
 		
+		#if android
+		var t:FlxTouch = FlxG.touches.getFirst();
+		if (t != null)
+		{
+			if (t.pressed)
+			{
+				shootPBullet();
+			}
+		}
+		#end
+		
+		#if !FLX_NO_KEYBOARD
 		if (FlxG.keys.anyPressed(["SPACE", "X"]))
 		{
 			shootPBullet();
 		}
+		#end
+		
+		
 		
 	}
 	

@@ -7,6 +7,7 @@ import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.FlxSprite;
 import flixel.FlxSubState;
+import flixel.input.touch.FlxTouch;
 import flixel.math.FlxRandom;
 import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
@@ -68,7 +69,11 @@ class MessagePopup extends FlxSubState
 		_text.setBorderStyle(FlxTextBorderStyle.SHADOW, 0xff339933, 2, 1);
 		
 		
-		_textContinue = new FlxText(_box.x + 8, _box.y + _box.height - 28, _box.width - 16, "Press X", 12);
+		_textContinue = new FlxText(_box.x + 8, _box.y + _box.height - 28, _box.width - 16, "Press X to Start", 12);
+		#if FLX_NO_KEYBOARD
+		_textContinue.text = "Tap to Start";
+		#end
+		
 		_textContinue.alignment = FlxTextAlign.CENTER;
 		_textContinue.color = 0x99ff99;
 		_textContinue.setBorderStyle(FlxTextBorderStyle.SHADOW, 0xff339933, 2, 1);
@@ -122,6 +127,7 @@ class MessagePopup extends FlxSubState
 		}
 		if (!_fadingIn && !_fadingOut)
 		{
+			#if !FLX_NO_KEYBOARD
 			if (FlxG.keys.anyJustReleased(["X"]))
 			{
 				_fadingOut = true;
@@ -129,6 +135,20 @@ class MessagePopup extends FlxSubState
 					close();
 				}},updateAlpha);
 			}
+			#end
+			#if android
+			var t:FlxTouch = FlxG.touches.getFirst();
+			if (t != null)
+			{
+				if (t.justReleased)
+				{
+					_fadingOut = true;
+					FlxTween.num(1, 0, .66, { type:FlxTween.ONESHOT, ease:FlxEase.circOut, onComplete:function(_) {
+						close();
+					}},updateAlpha);
+				}
+			}
+			#end
 		}
 	}
 	
