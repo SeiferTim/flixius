@@ -20,6 +20,7 @@ import flixel.ui.FlxBar;
 import flixel.ui.FlxButton;
 import flixel.math.FlxMath;
 import flixel.util.FlxColor;
+import flixel.util.FlxGradient;
 using flixel.util.FlxSpriteUtil;
 
 /**
@@ -155,6 +156,13 @@ class PlayState extends FlxState
 		_healthBar.createGradientBar([0xcc111111], [0xffff0000, 0xff00ff00], 1, 0, true, 0xcc333333);
 		_healthBar.scrollFactor.set();
 		add(_healthBar);
+		
+		var shine:FlxSprite = FlxGradient.createGradientFlxSprite(Std.int(_healthBar.width), Std.int(_healthBar.height), [0x66ffffff, 0xffffffff, 0x66ffffff, 0x11ffffff, 0x0]);
+		shine.alpha = .5;
+		shine.x = _healthBar.x;
+		shine.y = _healthBar.y;
+		shine.scrollFactor.set();
+		add(shine);
 		
 		_sprReady = new FlxSprite(0, 0);
 		_sprReady.makeGraphic(FlxG.width, Std.int(FlxG.height / 6),FlxColor.RED);
