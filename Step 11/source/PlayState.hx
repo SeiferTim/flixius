@@ -298,7 +298,11 @@ class PlayState extends FlxState
 	public function returnFromSubState():Void
 	{
 		_showingReady = true;
-		
+		#if flash
+		FlxG.sound.playMusic(AssetPaths.music__mp3);
+		#else
+		FlxG.sound.playMusic(AssetPaths.music__ogg);
+		#end
 		/* okay, I admit, this is ridiculous, but it works ;) I would probably find a nicer solution for a 'real' game lol */
 		FlxTween.num(0, 1, .1, { type:FlxTween.ONESHOT, ease:FlxEase.sineOut, onComplete:function(_) {
 			FlxTween.num(0, 1, .2, { type:FlxTween.ONESHOT, ease:FlxEase.sineOut, onComplete:function(_) {
@@ -387,7 +391,9 @@ class PlayState extends FlxState
 				if (!_fading)
 				{
 					_fading = true;
+					FlxG.sound.music.fadeOut(.6);
 					FlxG.camera.fade(FlxColor.BLACK, .8, false, function() {
+						FlxG.sound.music.stop();
 						FlxG.switchState(new MenuState());
 					});
 				}
@@ -408,10 +414,18 @@ class PlayState extends FlxState
 		}
 	}
 	
+	private function bubbleHitsWall(B:EBulletBubble, W:FlxTilemap):Void
+	{
+		if (B.alive && B.exists && B.isOnScreen())
+		{
+			FlxG.sound.play(AssetPaths.bounce__wav, .8);
+		}
+	}
+	
 	private function collision():Void
 	{
 		FlxG.collide(_sprPlayer, _map,playerHitsWall);
-		FlxG.collide(_grpEBulletBubbles, _map);
+		FlxG.collide(_grpEBulletBubbles, _map, bubbleHitsWall);
 		FlxG.collide(_grpEBullets, _map, bulletHitsWall);
 		FlxG.collide(_grpPBullets, _map, bulletHitsWall);
 		
@@ -585,7 +599,7 @@ class PlayState extends FlxState
 			eB = new EBullet();
 		eB.reset(E.x -eB.width, E.y +E.height -1);
 		_grpEBullets.add(eB);
-		FlxG.sound.play(AssetPaths.eshoot__wav);
+		FlxG.sound.play(AssetPaths.eshoot__wav,.66);
 		var s:Spark = _sparks.recycle();
 		if (s == null)
 			s = new Spark();
@@ -604,7 +618,7 @@ class PlayState extends FlxState
 		eB.velocity.set(100, 0);
 		eB.velocity.rotate(FlxPoint.weak(), rnd.int(0, 360));
 		_grpEBulletBubbles.add(eB);
-		FlxG.sound.play(AssetPaths.eshoot__wav);
+		FlxG.sound.play(AssetPaths.bubble__wav,.66);
 		
 		
 	}
@@ -619,7 +633,7 @@ class PlayState extends FlxState
 			pB.reset(_sprPlayer.x + _sprPlayer.width, _sprPlayer.y +_sprPlayer.height -1);
 			_grpPBullets.add(pB);
 			_shootDelay = .5;
-			FlxG.sound.play(AssetPaths.shoot__wav);
+			FlxG.sound.play(AssetPaths.shoot__wav,.33);
 			var s:Spark = _sparks.recycle();
 			if (s == null)
 				s = new Spark();

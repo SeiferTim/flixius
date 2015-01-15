@@ -50,7 +50,7 @@ class Explosion extends FlxSprite
 			if (_delay <= 0)
 			{
 				visible = true;
-				FlxG.sound.play(AssetPaths.Explosion__wav);
+				FlxG.sound.play(AssetPaths.Explosion__wav,.66);
 				animation.play("explode");
 			}
 			else

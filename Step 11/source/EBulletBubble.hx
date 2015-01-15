@@ -1,6 +1,7 @@
 package ;
 
 import flixel.FlxG;
+import flixel.FlxObject;
 import flixel.FlxSprite;
 import flixel.system.FlxAssets.FlxGraphicAsset;
 
@@ -30,6 +31,8 @@ class EBulletBubble extends FlxSprite
 			_aliveTimer -= FlxG.elapsed;
 		else
 			kill();
+		
+		
 	}
 	
 }

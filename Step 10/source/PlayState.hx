@@ -36,7 +36,7 @@ class PlayState extends FlxState
 	{
 		super.create();
 		bgColor = 0xff160100;
-		
+		FlxG.sound.playMusic(AssetPaths.music__mp3);
 		Reg.score = 0;
 		
 		_grpEnemies = new FlxTypedGroup<Enemy>();
@@ -188,6 +188,7 @@ class PlayState extends FlxState
 	{
 		_sprPlayer.kill();
 		FlxG.sound.play(AssetPaths.Explosion__wav);
+		FlxG.sound.music.stop();
 		FlxG.switchState(new MenuState());
 	}
 	
